@@ -1,0 +1,25 @@
+init_from_pretrained_model: /path/to/best/model/from/stage3.ckpt  # Set this
+model:
+  encoder_name: "bert-base-cased"
+  dropout_correction: 0
+  dropout_detection: 0
+  num_classes_detection: 1
+  loss:
+    correction:
+      name: CrossEntropy
+    detection:
+      name: CrossEntropy
+  min_len: 4
+  max_correction_iterations: 5
+  min_correction_confidence: 0.622  # You can finetune this with grid search
+  min_error_probability: 0.177  # You can finetune this with grid search
+  additional_keep_confidence: 0.266  # You can finetune this with grid search
+  detection_pool_mode: max
+  correction_pool_mode: most_confident
+  output_vocab:
+    num_tokens: 5000  # You can change this if you have custom output vocab
+    path: data/output_vocab.txt  # You can change this if you have custom output vocab
+    unknown_token_action: skip
+  optimizer:  # Not really important since we are not training, but needed by the model
+    name: Adam
+    lr: 1e-5

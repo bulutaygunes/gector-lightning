@@ -1,0 +1,72 @@
+batch_size: 64
+seed: 235645684
+deterministic: true
+init_from_pretrained_model: /path/to/best/model/from/stage1.ckpt  # Set this
+
+data_module:
+  train:
+    min_len: 4
+    max_len: 50
+    label_all_tokens: true
+    skip_correct: true
+    dataset_params:
+      - path: /path/to/wi+locness_train.txt  # Set this
+      - path: /path/to/fce.txt  # Set this
+      - path: /path/to/nucle.txt  # Set this
+      - path: /path/to/lang8.txt  # Set this
+        broken_dot_strategy: skip
+    dataloader_params:  # PyTorch DataLoader params
+      drop_last: false
+      shuffle: true
+      batch_size: ${batch_size}
+      num_workers: 0
+  val:
+    min_len: 4
+    label_all_tokens: true
+    dataset_params:
+      path: /path/to/wi+locness_dev.txt  # Set this
+    dataloader_params:  # PyTorch DataLoader params
+      drop_last: false
+      shuffle: false
+      batch_size: ${batch_size}
+      num_workers: 0  # Higher values give error
+
+model:
+  encoder_name: bert-base-cased
+  dropout_correction: 0
+  dropout_detection: 0
+  num_classes_detection: 1
+  loss:
+    correction:
+      name: CrossEntropy
+    detection:
+      name: CrossEntropy
+  detection_loss_weight: 1.0
+  output_vocab:
+    num_tokens: 5000  # You can change this if you have custom output vocab
+    path: data/output_vocab.txt  # You can change this if you have custom output vocab
+    unknown_token_action: skip
+  optimizer:
+    name: Adam
+    lr: 1e-5
+  scheduler:
+    name: ReduceLROnPlateau
+    monitor: v_correction_F0_5
+    mode: max
+    factor: 0.1
+    patience: 10
+
+trainer:  # PyTorch Lightning Trainer params
+  accumulate_grad_batches: 2
+  deterministic: ${deterministic}
+  precision: bf16-mixed
+  max_epochs: -1
+
+model_checkpoint:
+  monitor: v_correction_F0_5
+  save_top_k: 3
+  mode: max
+
+encoder_freeze_callback:
+  epochs: 2
+  lr: 1e-3

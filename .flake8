@@ -1,0 +1,4 @@
+[flake8]
+extend-ignore = W291,E203
+extend-exclude = helpers.py,preprocess_data.py
+max-line-length = 88
